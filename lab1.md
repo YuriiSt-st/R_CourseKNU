@@ -9,7 +9,7 @@ output: html_document
 ```{}
 a1 <- "a"
 b1 <- 1.4
-c1 <- 1
+c1 <- as.integer(1)
 d1 <- 1+0i
 f1 <- TRUE
 ```
@@ -29,7 +29,7 @@ a3 <- c(0.5,1.3,3.5)
 b3 <- c(3.9,131,2.8)
 c3 <- c(0,2.2,4.6)
 d3 <- c(2,7,5.1)
-matrix_b <- matrix(cbind(a3,b3,c3,d3),byrow = TRUE, nrow = 4, ncol=3)
+rbind(a3,b3,c3,d3)
 ```
 ```
 ##     [,1]  [,2] [,3]
