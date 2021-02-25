@@ -1,0 +1,63 @@
+---
+title: "Lab 4"
+author: "Yurii Stashchuk"
+date: "25 02 2021"
+output: html_document
+---
+
+```{r}
+df <- read.csv2("C:/Users/Yurii Stashchuk/Desktop/hw1_data.csv",header=T, sep=',')
+```
+
+## 1. Які назви стовпців файлу даних?
+
+```{r}
+names(df)
+```
+
+## 2.Виведіть перші 6 строк фрейму даних.
+
+```{r}
+head(df,6)
+```
+## 3. Скільки спостерігань (строк) в дата фреймі?
+```{r}
+nrow(df)
+```
+
+
+## 4. Виведіть останні 10 строк дата фрейму.
+```{r}
+tail(df)
+```
+
+## 5. Як багато значень «NA»в стовпці «Ozone»?
+```{r}
+length(na.omit(df$Ozone))
+```
+
+## 6. Яке середнє (mean) стовпця «Ozone». Виключити «NA»значення.
+```{r}
+mean(df$Ozone,na.rm = T)
+```
+
+## 7. Виведіть частину набору даних (subset) зі значенням «Ozone»> 31 та «Temp»> 90. Яке середнє (mean) значень «Solar.R»в цьому наборі даних (subset)?
+
+```{r}
+df1<-subset(df,df$Ozone>31 && df$Temp>90)
+df1
+df11<-subset(df,df$Ozone>31)
+mean(df11$Solar.R,na.rm = T)
+df12<-subset(df,df$Temp>90)
+mean(df12$Solar.R,na.rm = T)
+```
+## 8. Яке середнє значення (mean) для «Temp»для червня («Month» дорівнює6)?
+```{r}
+df2<-subset(df,df$Month==6)
+mean(df2$Temp)
+```
+## 9. Яке максимальне значення «Ozone» для травня («Month»дорівнює5)?
+```{r}
+df3<-subset(df,df$Month==5)
+max(df3$Ozone, na.rm = T)
+```
