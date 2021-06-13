@@ -1,0 +1,118 @@
+---
+title: "Lab 5"
+author: "Yurii Stashchuk"
+date: "11 03 2021"
+output: html_document
+---
+## 1. Написати функцію pmean, яка обчислює середнє значення (mean) забруднення сульфатами або нітратами серед заданого переліка моніторів. Ця функція приймає три аргументи: «directory», «pollutant», «id». Directory–папка, в якій розміщені дані, pollutant–вид забруднення, id–перелік моніторів. Аргумент idмає значення за замовчуванням 1:332. Функція повинна ігнорувати NAзначення.
+
+# Перша функція створена для створення списку id, оскільки id приймає значення від 1 до 332, а назви файлів 001.csv, 010.csv, то потрібно перетворити їх у рядок та додати "0" або "00". Також в циклі встановлюється  setwd директорія, оскільки після кожного циклу функція буде вибивати помилку. Це все буде повторюватись у наступних функціях.
+```{r}
+ofil <- function(idf){
+  r <- vector()
+  for (i in 1:length(idf)) {
+    if (idf[i] < 10) {
+      r[i] <- paste('00',toString(idf[i]), sep = '')
+    } else if(idf[i] < 100 && idf[i] >= 10){
+      r[i] <- paste('0',toString(idf[i]), sep = '')
+    } else r[i] <- toString(idf[i])
+  }
+  r
+}
+
+#1
+pmean <- function(directory = 'specdata', pollutant, id = c(1:332)){
+  u <- vector()
+  count <- vector()
+  number <- ofil(id)
+  for (i in 1:length(id)) {
+    setwd(dir = "C:/Users/Yurii Stashchuk/Documents")
+    setwd(dir = directory)
+    pfile <- paste(number[i],'.csv', sep = '')
+    df <- data.frame(read.csv2(pfile, header = T, sep = ","))
+    
+    if (pollutant == 'sulfate') {
+      u[i] <- sum(na.omit(as.numeric(df$sulfate)))
+      count[i] <- length(na.omit(as.numeric(df$sulfate)))
+    } else if (pollutant == 'nitrate'){
+      u[i] <- sum(na.omit(as.numeric(df$nitrate)))
+      count[i] <- length(na.omit(as.numeric(df$nitrate)))
+    } else print('Input correct pollutant')
+  }
+  sum(u)/sum(count)
+}
+pmean("specdata", "sulfate", 1:10)
+pmean("specdata", "sulfate", 55)
+pmean("specdata", "nitrate")
+
+```
+
+## 2.Написати функцію complete, яка виводить кількість повних спостережень (the number of completely observed cases) для кожного файлу. Функція приймає два аргументи: «Directory» та «id» та повертає dataframe, в якому перший стовпчик – ім’я файлу, а другий – кількість повних спостережень.
+
+# Аналогічний код для відкриття файлу. Перевірка на довжину потрібна для того, щоб визначити кількість повних спостережень, оскільки nitrate та sulfate можуть мати різну кількість NA значень.
+```{r}
+complete <- function(directory='specdata', id){
+  com_df <- data.frame(ID = numeric(0), Nobs = numeric(0))
+  number <- ofil(id)
+  
+  for (i in 1:length(id)) {
+    setwd(dir = "C:/Users/Yurii Stashchuk/Documents")
+    setwd(dir = directory)
+    pfile <- paste(number[i],'.csv', sep = '')
+    df <- data.frame(read.csv2(pfile, header = T, sep = ","))
+    
+    if (length(na.omit(df$sulfate))>length(na.omit(df$nitrate))) {
+      nobs <- length(na.omit(df$nitrate))
+      com_df[i,] <- c(id[i],nobs)
+    } else {
+      nobs <-length(na.omit(df$sulfate))
+      com_df[i,] <- c(id[i],nobs)
+    }
+  }
+  com_df
+}
+complete("specdata", 1)
+complete("specdata", c(2, 4, 8, 10, 12))
+complete("specdata", 50:60)
+```
+
+## 3. Написати функцію corr, яка приймаєдва аргументи: directory(папка, де знаходяться файли спостережень) та threshold(порогове значення, за замовчуванням дорівнює 0) та обчислює кореляцію між сульфатами та нітратами для моніторів, кількість повних спостережень для яких більше порогового  значення.  Функція  повинна  повернути  вектор  значень кореляцій. Якщо ні один монітор не перевищує порогового значення, функція повинна повернути numericвектор довжиною 0. 
+
+# У даному випадку для відкриття файлів та перевірки кількості спостережень використовується схожий код що й у попередніх функціях, але тут ще вирівнюються кількість спостережень, щоб можливо було використати функцію кореляції, яка не працює з рядами різної довжини.
+```{r}
+corr <- function(directory = 'specdata', threshold = 0){
+  rcor <- vector()
+  id <- 1:332
+  number <- ofil(id)
+  for (i in 1:length(id)) {
+    
+    setwd(dir = "C:/Users/Yurii Stashchuk/Documents")
+    setwd(dir = directory)
+    pfile <- paste(number[i],'.csv', sep = '')
+    df <- data.frame(read.csv2(pfile, header = T, sep = ","))
+    if (length(na.omit(df$sulfate))>length(na.omit(df$nitrate))) {
+      nobs <- length(na.omit(df$nitrate))
+      df1 <- df[!is.na(df["nitrate"]),]
+      sulfate <- as.numeric(df1$sulfate)
+      nitrate <- as.numeric(df1$nitrate)
+    } else {
+      nobs <-length(na.omit(df$sulfate))
+      df1 <- df[!is.na(df["sulfate"]),]
+      sulfate <- as.numeric(df1$sulfate)
+      nitrate <- as.numeric(df1$nitrate)
+    }
+    if (nobs > threshold ) {
+      rcor[i] <- cor(sulfate, nitrate)
+    } 
+  }
+  na.omit(rcor)
+}
+
+cr <- corr("specdata", 150)
+head(cr); summary(cr)
+cr <- corr("specdata", 400)
+head(cr); summary(cr)
+cr <- corr("specdata", 5000)
+head(cr); summary(cr) ; length(cr)
+```
+
